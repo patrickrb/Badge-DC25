@@ -1,0 +1,46 @@
+{
+    "description": "Library for SSD1306-powered OLED 128x64 displays!", 
+    "repository": {
+        "url": "https://github.com/acrobotic/Ai_Ardulib_SSD1306", 
+        "type": "git"
+    }, 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam", 
+        "espressif8266", 
+        "intel_arc32", 
+        "microchippic32", 
+        "nordicnrf51", 
+        "teensy", 
+        "timsp430"
+    ], 
+    "export": {
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ], 
+        "include": null
+    }, 
+    "authors": [
+        {
+            "maintainer": true, 
+            "name": "ACROBOTIC", 
+            "url": null, 
+            "email": "master@acrobotic.com"
+        }
+    ], 
+    "keywords": [
+        "display"
+    ], 
+    "id": 457, 
+    "name": "ACROBOTIC SSD1306", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "version": "1.0.1", 
+    "homepage": null
+}
