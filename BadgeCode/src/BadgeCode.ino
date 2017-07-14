@@ -49,13 +49,13 @@ int wifiStatus = 0;
 
 // Menu Variables
 //Set position variables
-  int currentMenuPos = 1;
-  int previousMenuPos = 0;
-  int menuPosSelected = 0;
-  int menuNumItems = 0;
-  int menuNumber = 0;
-  int previousMenuNumber = 0;
-  char menuIndicator[ ] = "*";
+int currentMenuPos = 1;
+int previousMenuPos = 0;
+int menuPosSelected = 0;
+int menuNumItems = 0;
+int menuNumber = 0;
+int previousMenuNumber = 0;
+char menuIndicator[ ] = "*";
 
 // Setup Debouncing for buttons
 Bounce debounceButtonUp = Bounce();
@@ -68,8 +68,7 @@ int debounceInterval = 10;
 // Wifi Settings
 char ssid[]="SecKC_Badge";  //SSID
 
-void setup()
-{
+void setup(){
   Serial.begin(9600);
   // initialize the LED pin as an output:
   pinMode(ledPin, OUTPUT);
@@ -95,150 +94,94 @@ void setup()
   oled.init();
   oled.setHorizontalScrollProperties(Scroll_Left,72,95,Scroll_2Frames);
   oled.clearDisplay();
-
 }
 
-void drawBob()
-{
-    if (debug == 1){
-      Serial.println ("Draw Bob Called");
+void drawCredits(){
+  oled.clearDisplay();
+  oled.setTextXY(0,0);
+  oled.putString ("****Credits****");
+  oled.setTextXY(2,0);
+  oled.setTextXY(3,0);
+  oled.putString ("      fg");
+  oled.setTextXY(4,0);
+  oled.putString ("     rixon");
+  oled.setTextXY(5,0);
+  oled.putString ("  networkgeek");
+  delay(4000);
+  oled.clearDisplay();  // clear the display ahead of the menu
+  returnToMenu(menuNumber);
+}
+
+void drawSponsors(){
+  oled.clearDisplay();
+  oled.setTextXY(0,0);
+  oled.putString ("***************");
+  oled.setTextXY(1,0);
+  oled.putString ("  SecKC");
+  oled.setTextXY(2,0);
+  oled.putString ("Defcon 25 Badge");
+  oled.setTextXY(5,0);
+  oled.putString ("BadgePirates.com");
+  delay(2000);
+  oled.clearDisplay();  // clear the display ahead of the menu
+  returnToMenu(menuNumber);
+}
+
+void drawTwitterCredits(){
+  oled.clearDisplay();
+  oled.setTextXY(0,0);
+  oled.putString ("***************");
+  oled.setTextXY(1,0);
+  oled.putString ("#BadgeLife");
+  oled.setTextXY(2,0);
+  oled.putString ("#SecKC");
+  oled.setTextXY(3,0);
+  oled.putString ("#DefConParties");
+  oled.setTextXY(5,0);
+  oled.putString ("BadgePirates.com");
+  delay(2000);
+  oled.clearDisplay();  // clear the display ahead of the menu
+  returnToMenu(menuNumber);
+}
+
+void drawBling(){
+  int repeat = 1;
+  long imageTimer = millis();
+  digitalWrite(ledPin, LOW); //LED is OFF
+  oled.clearDisplay();  // clear the display SecKC DefCon Bitmap
+  while (repeat > 0){
+    if(millis() - imageTimer <= 2000){
+      oled.drawBitmap(SecKCFuzzy,1024);
     }
-
-    digitalWrite(ledPin, HIGH);
-    oled.drawBitmap(BobSmall,1024);   // 1024 pixels for logo
-
-}
-
-void drawCredits()
-{
-     if (debug == 1){
-       Serial.println ("Draw Credits Called");
-     }
-    oled.clearDisplay();
-    oled.setTextXY(0,0);
-    oled.putString ("****Credits****");
-    oled.setTextXY(2,0);
-    oled.setTextXY(3,0);
-    oled.putString ("      fg");
-    oled.setTextXY(4,0);
-    oled.putString ("     rixon");
-    oled.setTextXY(5,0);
-    oled.putString ("  networkgeek");
-    delay(4000);
-    oled.clearDisplay();  // clear the display ahead of the menu
-    returnToMenu(menuNumber);
-}
-
-void drawSponsors()
-{
-    if (debug == 1){
-      Serial.println ("Draw Sponsors Called");
+    if((millis() - imageTimer >= 2001) && (millis() - imageTimer <= 4000)){
+      oled.drawBitmap(BobSmall,1024);
     }
-    oled.clearDisplay();
-    oled.setTextXY(0,0);
-    oled.putString ("***************");
-    oled.setTextXY(1,0);
-    oled.putString ("  SecKC");
-    oled.setTextXY(2,0);
-    oled.putString ("Defcon 25 Badge");
-    oled.setTextXY(5,0);
-    oled.putString ("BadgePirates.com");
-    delay(2000);
-    oled.clearDisplay();  // clear the display ahead of the menu
-    returnToMenu(menuNumber);
-}
-
-void drawTwitterCredits()
-{
-    if (debug == 1){
-      Serial.println (" Draw TwitterCredits Called");
+    if((millis() - imageTimer >= 4001) && (millis() - imageTimer <= 6000)){
+      oled.drawBitmap(DCXXV,1024);
     }
-    oled.clearDisplay();
-    oled.setTextXY(0,0);
-    oled.putString ("***************");
-    oled.setTextXY(1,0);
-    oled.putString ("#BadgeLife");
-    oled.setTextXY(2,0);
-    oled.putString ("#SecKC");
-    oled.setTextXY(3,0);
-    oled.putString ("#DefConParties");
-    oled.setTextXY(5,0);
-    oled.putString ("BadgePirates.com");
-    delay(2000);
-    oled.clearDisplay();  // clear the display ahead of the menu
-    returnToMenu(menuNumber);
-}
-
-void drawSecKC()
-{
-    if (debug == 1){
-      Serial.println ("Draw SecKC Called");
+    if((millis() - imageTimer >= 6001) && (millis() - imageTimer <= 8000)){
+      oled.drawBitmap(DCP,1024);
     }
-
-    digitalWrite(ledPin, LOW); //LED is OFF
-    oled.clearDisplay();  // clear the display SecKC DefCon Bitmap
-    oled.drawBitmap(SecKCSmall,1024); //Display SecKC DefCon Words
-    delay(2000);
-    menuPosSelected = 0;  // reset the menu selection
-    oled.clearDisplay();
-    returnToMenu(menuNumber);
-}
-
-void drawSecKCFuzzy()
-{
-    if (debug == 1){
-      Serial.println ("Draw 5ecKC Called");
+    if(millis() - imageTimer >= 8001){
+      imageTimer = millis();
     }
-
-    digitalWrite(ledPin, LOW); //LED is OFF
-    oled.clearDisplay();  // clear the display SecKC DefCon Bitmap
-    oled.drawBitmap(SecKCFuzzy,1024); //Display SecKC DefCon Words
-    delay(2000);
-    menuPosSelected = 0;  // reset the menu selection
-    oled.clearDisplay();
-    returnToMenu(menuNumber);
-}
-
-void drawBling()
-{
-    if (debug == 1){
-      Serial.println ("Draw Bling Called");
-    }
-    int repeat = 1;
-    long imageTimer = millis();
-    digitalWrite(ledPin, LOW); //LED is OFF
-    oled.clearDisplay();  // clear the display SecKC DefCon Bitmap
-    while (repeat > 0) {
-      if(millis() - imageTimer <= 2000)
-      {
-        oled.drawBitmap(SecKCFuzzy,1024);
-      }
-      if((millis() - imageTimer >= 2001) && (millis() - imageTimer <= 4000)){
-        oled.drawBitmap(BobSmall,1024);
-      }
-      if((millis() - imageTimer >= 4001) && (millis() - imageTimer <= 6000)){
-        oled.drawBitmap(DCXXV,1024);
-      }
-      if((millis() - imageTimer >= 6001) && (millis() - imageTimer <= 8000)){
-        oled.drawBitmap(DCP,1024);
-      }
-      if(millis() - imageTimer >= 8001){
-        imageTimer = millis();
-      }
-    }
-}
-
-void checkButtonUpPressLength()
-{
-  if(buttonUpPressedTime >= 3000){
-    buttonUpPressedTime = 0;
-    topMenu();
+    setUpButtonTimers();
+    if(checkButtonUpPressLength()){
+      repeat = 0;
+      menuNumber = 0;
+      buttonUpPressedTime = 0;
+      topMenu();
+    };
   }
 }
 
-void returnToMenu(int menuNumber)
-{
-  // Menu 1 (Top)
+bool checkButtonUpPressLength(){
+  if(buttonUpPressedTime >= 3000){return true;}
+  else{return false;}
+}
+
+void returnToMenu(int menuNumber){
+   // Menu 1 (Top)
    if (menuNumber == 1) {
      topMenu();
    }
@@ -248,156 +191,133 @@ void returnToMenu(int menuNumber)
   }
 }
 
-void topMenu()
-{
+void topMenu(){
+  oled.clearDisplay();  // Get screen ready for new menu
+  oled.setTextXY (0,3);
+  oled.putString ("==MENU==");
+  oled.setTextXY (1,2);
+  oled.putString ("1. Bling Mode");
+  oled.setTextXY (2,2);
+  oled.putString ("2. Credits");
+  oled.setTextXY (3,2);
+  oled.putString ("3. -----");
+  oled.setTextXY (4,2);
+  oled.putString ("4. Settings");
+  oled.setTextXY (1,1);
+  menuNumItems = 4;  // Allow for navigation to iterate through the correct number of positions
+  menuNumber = 1;  // Each menu needs a unique ID for the cases to switch the correct function
+  if (firstBoot == 0) {
+  menuNavigation(menuNumber, menuNumItems);
+  }
+}
 
-    if (debug == 1){
-      Serial.println ("Top Menu Called");
-    }
-    oled.clearDisplay();  // Get screen ready for new menu
-    oled.setTextXY (0,3);
-    oled.putString ("==MENU==");
-    oled.setTextXY (1,2);
-    oled.putString ("1. Bling Mode");
-    oled.setTextXY (2,2);
-    oled.putString ("2. Credits");
-    oled.setTextXY (3,2);
-    oled.putString ("3. -----");
-    oled.setTextXY (4,2);
-    oled.putString ("4. Settings");
-    oled.setTextXY (1,1);
-    menuNumItems = 4;  // Allow for navigation to iterate through the correct number of positions
-    menuNumber = 1;  // Each menu needs a unique ID for the cases to switch the correct function
-    if (firstBoot == 0) {
-    menuNavigation(menuNumber, menuNumItems);
-    }
+void settingsMenu(){
+  currentMenuPos = 1;
+  menuPosSelected = 0;  // Reset flag from call to function
+  oled.clearDisplay();  // Get screen ready for new menu
+  oled.setTextXY (0,3);
+  oled.putString ("==Settings==");
+  oled.setTextXY (1,2);
+  oled.putString ("1. LCD Low");
+  // Set value indicator if brightness == low
+  if (screenBrightness == 0) {
+  oled.setTextXY (1,15);
+  oled.putString ("*");
+  }
+
+  oled.setTextXY (2,2);
+  oled.putString ("2. LCD High");
+  // Set value indicator if brightness == high
+  if (screenBrightness == 1) {
+  oled.setTextXY (2,15);
+  oled.putString ("*");
+  }
+
+  oled.setTextXY (3,2);
+  oled.putString ("3. Wifi On");
+  // Set value indicator if WIFI == high
+  if (wifiStatus == 1) {
+  oled.setTextXY (3,15);
+  oled.putString ("*");
+  }
+
+  oled.setTextXY (4,2);
+  oled.putString ("4. Wifi Off");
+  // Set value indicator if brightness == low
+  if (wifiStatus == 0) {
+  oled.setTextXY (4,15);
+  oled.putString ("*");
+  }
+
+  oled.setTextXY (1,1);
+  menuNumItems = 4;  // Allow for navigation to iterate through the correct number of positions
+  menuNumber = 2;  // Each menu needs a unique ID for the cases to switch the correct function
+  menuNavigation(menuNumber, menuNumItems);
 }
 
 
-void settingsMenu()
-{
+void menuNavigation(int menuNumber, int menuNumItems){
+  // topMenu Navigation
+  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 1){
+    drawBling();
+  }
 
-    if (debug == 1){
-      Serial.println ("Settings Menu Called");
-    }
-    currentMenuPos = 1;
-    menuPosSelected = 0;  // Reset flag from call to function
-    oled.clearDisplay();  // Get screen ready for new menu
-    oled.setTextXY (0,3);
-    oled.putString ("==Settings==");
-    oled.setTextXY (1,2);
-    oled.putString ("1. LCD Low");
-    // Set value indicator if brightness == low
-    if (screenBrightness == 0) {
-    oled.setTextXY (1,15);
-    oled.putString ("*");
-    }
-
-    oled.setTextXY (2,2);
-    oled.putString ("2. LCD High");
-    // Set value indicator if brightness == high
-    if (screenBrightness == 1) {
-    oled.setTextXY (2,15);
-    oled.putString ("*");
-    }
-
-    oled.setTextXY (3,2);
-    oled.putString ("3. Wifi On");
-    // Set value indicator if WIFI == high
-    if (wifiStatus == 1) {
-    oled.setTextXY (3,15);
-    oled.putString ("*");
-    }
-
-    oled.setTextXY (4,2);
-    oled.putString ("4. Wifi Off");
-    // Set value indicator if brightness == low
-    if (wifiStatus == 0) {
-    oled.setTextXY (4,15);
-    oled.putString ("*");
-    }
-
-    oled.setTextXY (1,1);
-    menuNumItems = 4;  // Allow for navigation to iterate through the correct number of positions
-    menuNumber = 2;  // Each menu needs a unique ID for the cases to switch the correct function
-    menuNavigation(menuNumber, menuNumItems);
-}
-
-
-void menuNavigation(int menuNumber, int menuNumItems)
-{
-
-
-if (debug ==1) {
-   Serial.print ("Menu Number: ");
-   Serial.println (menuNumber);
-   Serial.print ("Current Pos: ");
-   Serial.println (currentMenuPos);
-}
-
-// topMenu Navigation
-if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 1) {
-      drawBling();
-    }
-
-  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 2) {
+  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 2){
     drawCredits();
   }
 
-  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 3) {
+  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 3){
     drawTwitterCredits();
   }
 
-  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 4) {
+  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 4){
     settingsMenu();
-}
+  }
 
-// Settings Menu Navigation...
+  // Settings Navigation
+  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 1){
+    oledBrightnessLow();
+  }
 
-// Settings Navigation
-    if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 1) {
-      oledBrightnessLow();
-    }
-
-  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 2) {
+  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 2){
      oledBrightnessHigh();
-   }
+  }
 
-  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 3) {
+  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 3){
     wifiOn();
   }
 
-  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 4) {
+  if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 4){
     wifiOff();
   }
 
-// Track the Menu positions and update the cursor
-if (debugnav == 1) {
-  Serial.print ("Current Menu Position: ");
-  Serial.println (currentMenuPos);
-  Serial.print ("Previous Menu Position: ");
-  Serial.println (previousMenuPos);
-}
+  // Track the Menu positions and update the cursor
+  if (debugnav == 1){
+    Serial.print ("Current Menu Position: ");
+    Serial.println (currentMenuPos);
+    Serial.print ("Previous Menu Position: ");
+    Serial.println (previousMenuPos);
+  }
 
-if (debounceButtonDown.fell() ) {
+  if (debounceButtonDown.fell() ){
     previousMenuPos = currentMenuPos;
     currentMenuPos++;
-}
-
-
-if (debounceButtonUp.fell() ) {
-    previousMenuPos = currentMenuPos;
-    if (currentMenuPos > 1) {
-    currentMenuPos--;
   }
-}
 
-if(debounceButtonLeft.fell() ) {
-  topMenu();
-}
+
+  if (debounceButtonUp.fell() ){
+      previousMenuPos = currentMenuPos;
+      if (currentMenuPos > 1){
+      currentMenuPos--;
+    }
+  }
+
+  if(debounceButtonLeft.fell() ){
+    topMenu();
+  }
 
   // Clean up for button bouncing
-  if (currentMenuPos > menuNumItems) {
+  if (currentMenuPos > menuNumItems){
     currentMenuPos = 1;
     previousMenuPos = menuNumItems;
     oled.setTextXY (menuNumItems,1);
@@ -405,13 +325,11 @@ if(debounceButtonLeft.fell() ) {
   }
 
   // Remove indicator from previous location
-
   oled.setTextXY (previousMenuPos,1);
   oled.putString (" ");
   // Update Menu indicator
   oled.setTextXY (currentMenuPos,1);
   oled.putString (menuIndicator);
-
   menuPosSelected = 0;  // reset the menu selection
 }
 
@@ -426,7 +344,6 @@ void wifiOn(){
   wifiStatus = 1;
   delay (2000);
   settingsMenu();
-
 }
 
 void wifiOff (){
@@ -438,95 +355,74 @@ void wifiOff (){
   wifiStatus = 0;
   delay (2000);
   settingsMenu();
-
 }
 
 void oledBrightnessLow ()
 {
-      oled.setBrightness(0);
-      Serial.println ("Brightness set to 0");
-      Serial.print ("Menu Select flag: ");
-      Serial.println (menuPosSelected);
-      screenBrightness = 0;
-      returnToMenu(menuNumber);
+  oled.setBrightness(0);
+  Serial.println ("Brightness set to 0");
+  Serial.print ("Menu Select flag: ");
+  Serial.println (menuPosSelected);
+  screenBrightness = 0;
+  returnToMenu(menuNumber);
 }
 
 void oledBrightnessHigh()
 {
-      oled.setBrightness(255);
-      Serial.println ("Brightness set to 255");
-      Serial.print ("Menu Select flag: ");
-      Serial.println (menuPosSelected);
-      screenBrightness = 1;
-      returnToMenu(menuNumber);
+  oled.setBrightness(255);
+  Serial.println ("Brightness set to 255");
+  Serial.print ("Menu Select flag: ");
+  Serial.println (menuPosSelected);
+  screenBrightness = 1;
+  returnToMenu(menuNumber);
 }
 
-void setUpButtonTimers() {
-  if ( debounceButtonUp.rose()  ) {
+void setUpButtonTimers(){
+  debounceButtonUp.update();
+  buttonUpState = debounceButtonUp.read();
+  if ( debounceButtonUp.rose()  ){
    buttonRoseTimeStamp = millis();
    buttonUpPressedTime = buttonRoseTimeStamp - buttonPressTimeStamp;
-   Serial.println(buttonUpPressedTime);
   }
 
-  if ( debounceButtonUp.fell()  ) {
+  if ( debounceButtonUp.fell()  ){
    buttonPressTimeStamp = millis();
   }
 }
 
 void loop(){
+  debounceButtonDown.update();
+  debounceButtonRight.update();
+  debounceButtonLeft.update();
+  debounceButtonOnBoard.update();
 
+  buttonDownState = debounceButtonDown.read();
+  buttonRightState = debounceButtonRight.read();
+  buttonLeftState = debounceButtonLeft.read();
+  buttonOnBoardState = debounceButtonOnBoard.read();
 
-// Display BOB if this is the first boot
-if (firstBoot == 0) {
-  drawBob();
-  delay(3000);
-}
+  if (debug == 1){
+    Serial.println ("Button Status");
+    Serial.println ("");
+    Serial.print ("Up:");
+    Serial.println (buttonUpState);
+    Serial.print ("Down: ");
+    Serial.println (buttonDownState);
+    Serial.print ("Right: ");
+    Serial.println (buttonRightState);
+    Serial.print ("Left: ");
+    Serial.println (buttonLeftState);
+  }
 
-  // Capture the current button status
+  // Set select variable and pass it into the menu
+  if (debounceButtonRight.fell() ){
+    menuPosSelected = 1;
+  }
 
-    // check buttons using Debounce Library
-    // First update
-
-    debounceButtonUp.update();
-    debounceButtonDown.update();
-    debounceButtonRight.update();
-    debounceButtonLeft.update();
-    debounceButtonOnBoard.update();
-
-
-    buttonUpState = debounceButtonUp.read();
-    buttonDownState = debounceButtonDown.read();
-    buttonRightState = debounceButtonRight.read();
-    buttonLeftState = debounceButtonLeft.read();
-    buttonOnBoardState = debounceButtonOnBoard.read();
-
-    setUpButtonTimers();
-    checkButtonUpPressLength();
-
-    if (debug == 1) {
-      Serial.println ("Button Status");
-      Serial.println ("");
-      Serial.print ("Up:");
-      Serial.println (buttonUpState);
-      Serial.print ("Down: ");
-      Serial.println (buttonDownState);
-      Serial.print ("Right: ");
-      Serial.println (buttonRightState);
-      Serial.print ("Left: ");
-      Serial.println (buttonLeftState);
-    }
-
-    // Set select variable and pass it into the menu
-    if (debounceButtonRight.fell() ){
-      menuPosSelected = 1;
-    }
-
-    // Call the first menu
-    if (firstBoot == 0) {
-      topMenu();
-      firstBoot++;
-    }
-
-    menuNavigation(menuNumber, menuNumItems);
-
+  // Call the first menu
+  if (firstBoot == 0){
+    topMenu();
+    firstBoot++;
+  }
+  menuNavigation(menuNumber, menuNumItems);
 }
