@@ -1,6 +1,4 @@
 #include <Arduino.h>
-
-
 /*
   06/03/2017
   Author: Badge Pirates (FG, RIXON, NETWORKGEEK)
@@ -12,7 +10,6 @@
   SECKC DC25 Badge using ESP32 Thing and OLED display
   ------------------------------------------------------------------------
 */
-
 
 #include <Wire.h>
 #include <ACROBOTIC_SSD1306.h>
@@ -65,6 +62,7 @@ Bounce debounceButtonLeft = Bounce();
 Bounce debounceButtonOnBoard = Bounce();
 int debounceInterval = 10;
 
+const unsigned char* imageArray[] = {SecKCSmall,SecKCFuzzy,DCP,DCXXV};
 // Wifi Settings
 char ssid[]="SecKC_Badge";  //SSID
 
