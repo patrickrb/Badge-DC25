@@ -40,6 +40,9 @@ int buttonLeftState = 0;
 int buttonOnBoardState = 0;
 int screenBrightness = 1;
 int firstBoot = 0;
+long buttonUpPressedTime;
+long buttonPressTimeStamp = millis();
+long buttonRoseTimeStamp = millis();
 
 //wifi variables
 int wifiStatus = 0;
@@ -202,20 +205,35 @@ void drawBling()
       Serial.println ("Draw Bling Called");
     }
     int repeat = 1;
-    while (repeat > 0) {
+    long imageTimer = millis();
     digitalWrite(ledPin, LOW); //LED is OFF
     oled.clearDisplay();  // clear the display SecKC DefCon Bitmap
-    oled.drawBitmap(SecKCFuzzy,1024);
-    delay(2000);
-    oled.drawBitmap(BobSmall,1024);
-    delay(2000);
-    oled.drawBitmap(DCXXV,1024);
-    delay(2000);
-    oled.drawBitmap(DCP,1024);
-    delay(2000);
-    menuPosSelected = 0;  // reset the menu selection
-    oled.clearDisplay();
+    while (repeat > 0) {
+      if(millis() - imageTimer <= 2000)
+      {
+        oled.drawBitmap(SecKCFuzzy,1024);
+      }
+      if((millis() - imageTimer >= 2001) && (millis() - imageTimer <= 4000)){
+        oled.drawBitmap(BobSmall,1024);
+      }
+      if((millis() - imageTimer >= 4001) && (millis() - imageTimer <= 6000)){
+        oled.drawBitmap(DCXXV,1024);
+      }
+      if((millis() - imageTimer >= 6001) && (millis() - imageTimer <= 8000)){
+        oled.drawBitmap(DCP,1024);
+      }
+      if(millis() - imageTimer >= 8001){
+        imageTimer = millis();
+      }
     }
+}
+
+void checkButtonUpPressLength()
+{
+  if(buttonUpPressedTime >= 3000){
+    buttonUpPressedTime = 0;
+    topMenu();
+  }
 }
 
 void returnToMenu(int menuNumber)
@@ -443,6 +461,18 @@ void oledBrightnessHigh()
       returnToMenu(menuNumber);
 }
 
+void setUpButtonTimers() {
+  if ( debounceButtonUp.rose()  ) {
+   buttonRoseTimeStamp = millis();
+   buttonUpPressedTime = buttonRoseTimeStamp - buttonPressTimeStamp;
+   Serial.println(buttonUpPressedTime);
+  }
+
+  if ( debounceButtonUp.fell()  ) {
+   buttonPressTimeStamp = millis();
+  }
+}
+
 void loop(){
 
 
@@ -470,6 +500,8 @@ if (firstBoot == 0) {
     buttonLeftState = debounceButtonLeft.read();
     buttonOnBoardState = debounceButtonOnBoard.read();
 
+    setUpButtonTimers();
+    checkButtonUpPressLength();
 
     if (debug == 1) {
       Serial.println ("Button Status");
