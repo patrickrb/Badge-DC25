@@ -16,6 +16,7 @@
 #include <Bounce2.h>
 #include <WiFi.h>
 #include <Sprite.h>
+#include <esp_wifi.h>
 
 // Debug
 const int debug = 0;  // set to 1 to turn on debugging
@@ -61,6 +62,7 @@ Bounce debounceButtonRight = Bounce();
 Bounce debounceButtonLeft = Bounce();
 Bounce debounceButtonOnBoard = Bounce();
 int debounceInterval = 10;
+bool scanning = false;
 
 const unsigned char* imageArray[] = {SecKCSmall,SecKCFuzzy,DCP,DCXXV};
 // Wifi Settings
@@ -92,6 +94,14 @@ void setup(){
   oled.init();
   oled.setHorizontalScrollProperties(Scroll_Left,72,95,Scroll_2Frames);
   oled.clearDisplay();
+
+
+  ESP_ERROR_CHECK(esp_event_loop_init(event_handler, NULL));
+  wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
+  ESP_ERROR_CHECK(esp_wifi_init(&cfg));
+  ESP_ERROR_CHECK(esp_wifi_set_storage(WIFI_STORAGE_RAM));
+  ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
+  ESP_ERROR_CHECK(esp_wifi_start());
 }
 
 void drawCredits(){
@@ -187,6 +197,66 @@ void returnToMenu(int menuNumber){
   if (menuNumber == 2) {
     settingsMenu();
   }
+  if (menuNumber == 3) {
+    scanWifi();
+  }
+}
+
+esp_err_t event_handler(void *ctx, system_event_t *event){
+ if (event->event_id == SYSTEM_EVENT_SCAN_DONE) {
+   oled.clearDisplay();  // Get screen ready for new menu
+   Serial.printf("Number of access points found: %d\n",
+   event->event_info.scan_done.number);
+   uint16_t apCount = event->event_info.scan_done.number;
+   currentMenuPos = 1;
+   menuPosSelected = 0;  // Reset flag from call to function
+   menuNumItems = 5;  // Allow for navigation to iterate through the correct number of positions
+   menuNumber = 3;  // Each menu needs a unique ID for the cases to switch the correct function
+   oled.clearDisplay();  // Get screen ready for new menu
+   oled.setTextXY (0,3);
+   oled.putString ("==APs==");
+   scanning = false;
+   if (apCount == 0) {
+     return ESP_OK;
+   }
+   wifi_ap_record_t *list =
+   (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
+   ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
+   int i;
+   for (i=0; i<apCount; i++) {
+     char *authmode;
+     switch(list[i].authmode) {
+       case WIFI_AUTH_OPEN:
+         authmode = "WIFI_AUTH_OPEN";
+         break;
+       case WIFI_AUTH_WEP:
+         authmode = "WIFI_AUTH_WEP";
+         break;
+       case WIFI_AUTH_WPA_PSK:
+         authmode = "WIFI_AUTH_WPA_PSK";
+         break;
+       case WIFI_AUTH_WPA2_PSK:
+         authmode = "WIFI_AUTH_WPA2_PSK";
+         break;
+       case WIFI_AUTH_WPA_WPA2_PSK:
+         authmode = "WIFI_AUTH_WPA_WPA2_PSK";
+         break;
+       default:
+         authmode = "Unknown";
+         break;
+     }
+     Serial.printf("ssid=%s, rssi=%d, authmode=%s\n",
+     list[i].ssid, list[i].rssi, authmode);
+     oled.setTextXY (i+1,1);
+     String ssid = (char*)list[i].ssid;
+     if(ssid.length() > 9 ){
+       ssid = ssid.substring(0, 10);
+     }
+     oled.putString (ssid);
+   }
+   free(list);
+ }
+ return ESP_OK;
 }
 
 void topMenu(){
@@ -201,12 +271,29 @@ void topMenu(){
   oled.putString ("3. -----");
   oled.setTextXY (4,2);
   oled.putString ("4. Settings");
+  oled.setTextXY (5,2);
+  oled.putString ("5. Scan Wifi");
   oled.setTextXY (1,1);
-  menuNumItems = 4;  // Allow for navigation to iterate through the correct number of positions
+  menuNumItems = 5;  // Allow for navigation to iterate through the correct number of positions
   menuNumber = 1;  // Each menu needs a unique ID for the cases to switch the correct function
   if (firstBoot == 0) {
   menuNavigation(menuNumber, menuNumItems);
   }
+}
+
+void scanWifi(){
+  scanning = true;
+  // Let us test a WiFi scan ...
+  wifi_scan_config_t scanConf = {
+  .ssid = NULL,
+  .bssid = NULL,
+  .channel = 0,
+  .show_hidden = 1
+  };
+  ESP_ERROR_CHECK(esp_wifi_scan_start(&scanConf, 0));
+  oled.clearDisplay();  // Get screen ready for new menu
+  oled.setTextXY (1,2);
+  oled.putString ("Starting scan...");
 }
 
 void settingsMenu(){
@@ -272,6 +359,11 @@ void menuNavigation(int menuNumber, int menuNumItems){
     settingsMenu();
   }
 
+
+  if (menuNumber == 1 && menuPosSelected == 1 && currentMenuPos == 5){
+    scanWifi();
+  }
+
   // Settings Navigation
   if (menuNumber == 2 && menuPosSelected == 1  && currentMenuPos == 1){
     oledBrightnessLow();
@@ -327,7 +419,9 @@ void menuNavigation(int menuNumber, int menuNumItems){
   oled.putString (" ");
   // Update Menu indicator
   oled.setTextXY (currentMenuPos,1);
-  oled.putString (menuIndicator);
+  if(scanning == false){
+    oled.putString (menuIndicator);
+  }
   menuPosSelected = 0;  // reset the menu selection
 }
 
@@ -389,11 +483,14 @@ void setUpButtonTimers(){
 }
 
 void loop(){
+
+  debounceButtonUp.update();
   debounceButtonDown.update();
   debounceButtonRight.update();
   debounceButtonLeft.update();
   debounceButtonOnBoard.update();
 
+  buttonUpState = debounceButtonUp.read();
   buttonDownState = debounceButtonDown.read();
   buttonRightState = debounceButtonRight.read();
   buttonLeftState = debounceButtonLeft.read();
