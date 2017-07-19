@@ -204,60 +204,35 @@ void returnToMenu(int menuNumber){
 
 esp_err_t event_handler(void *ctx, system_event_t *event){
  if (event->event_id == SYSTEM_EVENT_SCAN_DONE) {
-   oled.clearDisplay();  // Get screen ready for new menu
-   Serial.printf("Number of access points found: %d\n",
-   event->event_info.scan_done.number);
+   //get the number of AP's found
    uint16_t apCount = event->event_info.scan_done.number;
+   //setup oled for wifi menu
+   oled.clearDisplay();
    currentMenuPos = 1;
-   menuPosSelected = 0;  // Reset flag from call to function
-   menuNumItems = 5;  // Allow for navigation to iterate through the correct number of positions
+   menuPosSelected = 0;
+   menuNumItems = apCount;  // Allow for navigation to iterate through the correct number of positions
    menuNumber = 3;  // Each menu needs a unique ID for the cases to switch the correct function
-   oled.clearDisplay();  // Get screen ready for new menu
-   oled.setTextXY (0,3);
+   oled.setTextXY (0,5);
    oled.putString ("==APs==");
+
+   wifi_ap_record_t *list = (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount); //create list of type wifi_ap_record of the size of our results
+   esp_wifi_scan_get_ap_records(&apCount, list);  //save the ap's to our list
+
+   //loop of our list of ap's
+   for (int i=0; i<apCount; i++) {
+     String ssid = (char*)list[i].ssid; //convert ssid to string type
+     if(ssid.length() > 13 ){ ssid.remove(13); } //trim anything over 13 chars for oled
+     oled.setTextXY (i+1,2);  //move cursor
+     oled.putString (ssid);  //write ssid
+   }
+   //cleanup
+   oled.setTextXY (1,1);
    scanning = false;
-   if (apCount == 0) {
-     return ESP_OK;
-   }
-   wifi_ap_record_t *list =
-   (wifi_ap_record_t *)malloc(sizeof(wifi_ap_record_t) * apCount);
-   ESP_ERROR_CHECK(esp_wifi_scan_get_ap_records(&apCount, list));
-   int i;
-   for (i=0; i<apCount; i++) {
-     char *authmode;
-     switch(list[i].authmode) {
-       case WIFI_AUTH_OPEN:
-         authmode = "WIFI_AUTH_OPEN";
-         break;
-       case WIFI_AUTH_WEP:
-         authmode = "WIFI_AUTH_WEP";
-         break;
-       case WIFI_AUTH_WPA_PSK:
-         authmode = "WIFI_AUTH_WPA_PSK";
-         break;
-       case WIFI_AUTH_WPA2_PSK:
-         authmode = "WIFI_AUTH_WPA2_PSK";
-         break;
-       case WIFI_AUTH_WPA_WPA2_PSK:
-         authmode = "WIFI_AUTH_WPA_WPA2_PSK";
-         break;
-       default:
-         authmode = "Unknown";
-         break;
-     }
-     Serial.printf("ssid=%s, rssi=%d, authmode=%s\n",
-     list[i].ssid, list[i].rssi, authmode);
-     oled.setTextXY (i+1,1);
-     String ssid = (char*)list[i].ssid;
-     if(ssid.length() > 9 ){
-       ssid = ssid.substring(0, 10);
-     }
-     oled.putString (ssid);
-   }
-   free(list);
+   menuNavigation(menuNumber, menuNumItems);
  }
  return ESP_OK;
 }
+
 
 void topMenu(){
   oled.clearDisplay();  // Get screen ready for new menu
@@ -406,20 +381,20 @@ void menuNavigation(int menuNumber, int menuNumItems){
     topMenu();
   }
 
-  // Clean up for button bouncing
-  if (currentMenuPos > menuNumItems){
-    currentMenuPos = 1;
-    previousMenuPos = menuNumItems;
-    oled.setTextXY (menuNumItems,1);
-    oled.putString (" ");
-  }
-
-  // Remove indicator from previous location
-  oled.setTextXY (previousMenuPos,1);
-  oled.putString (" ");
-  // Update Menu indicator
-  oled.setTextXY (currentMenuPos,1);
   if(scanning == false){
+    // Clean up for button bouncing
+    if (currentMenuPos > menuNumItems){
+      currentMenuPos = 1;
+      previousMenuPos = menuNumItems;
+      oled.setTextXY (menuNumItems,1);
+      oled.putString (" ");
+    }
+
+    // Remove indicator from previous location
+    oled.setTextXY (previousMenuPos,1);
+    oled.putString (" ");
+    // Update Menu indicator
+    oled.setTextXY (currentMenuPos,1);
     oled.putString (menuIndicator);
   }
   menuPosSelected = 0;  // reset the menu selection
